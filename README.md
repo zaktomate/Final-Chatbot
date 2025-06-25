@@ -21,10 +21,10 @@ A real-time, AI-powered chatbot built with **Node.js**, **Gemini 1.5 Flash**, an
 - Seamless reply experience within Messenger
 - Optimized to avoid repetitive greetings and unnecessary boilerplate
 
-### ☁️ Scalable Cloud Deployment
-- Hosted on **Render** for cost-efficient, zero-maintenance deployments
-- Backend powered by **Node.js (Express)** and **MongoDB**
-- Message logs stored for analytics and personalization
+### ☁️ Scalable & Flexible Deployment
+- Lightweight **Node.js (Express)** backend, easily deployable on many platforms (Render, Heroku, etc.)
+- Supports any database or data storage method depending on your needs (e.g. JSON files, MongoDB, or other)
+- Message logging and user interaction history customizable per project requirements
 
 ### 🧱 Modular Architecture
 - Cleanly separated modules: RAG logic, webhook server, embedding system
@@ -39,11 +39,9 @@ A real-time, AI-powered chatbot built with **Node.js**, **Gemini 1.5 Flash**, an
 |----------------|--------------------------|
 | AI Model       | Gemini 1.5 Flash         |
 | Backend        | Node.js + Express        |
-| Database       | MongoDB Atlas            |
-| Deployment     | Render.com               |
+| Deployment     | Render, Heroku, or others|
 | Messenger API  | Meta Developer Platform  |
-| Embeddings     | Custom logic (JSON-based)|
+| Embeddings     | Custom logic (JSON-based or database-backed) |
 | Token Counter  | Lightweight custom tool  |
 
 ---
-
