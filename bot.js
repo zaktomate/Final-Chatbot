@@ -40,6 +40,7 @@ async function embedText(text) {
 // }
 
 async function searchMongo(embedding, topK = 5) {
+  console.log("🧪 Mongo URI:", process.env.MONGO_URI);
   const client = new MongoClient(process.env.MONGO_URI, {
   tls: true,
 });
