@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const axios = require("axios");
-const askGemini = require("./bot"); // Your RAG logic
+const askGemini = require("./bot"); // RAG logic
 
 const app = express();
 app.use(bodyParser.json());
@@ -28,27 +28,6 @@ app.get("/webhook", (req, res) => {
 });
 
 // Messenger Webhook (POST)
-// app.post("/webhook", async (req, res) => {
-//   const body = req.body;
-
-//   if (body.object === "page") {
-//     for (const entry of body.entry) {
-//       for (const event of entry.messaging) {
-//         const sender = event.sender.id;
-//         const message = event.message?.text;
-
-//         if (message) {
-//           const reply = await askGemini(message);
-//           await sendReply(sender, reply);
-//         }
-//       }
-//     }
-//     res.status(200).send("EVENT_RECEIVED");
-//   } else {
-//     res.sendStatus(404);
-//   }
-// });
-
 app.post("/webhook", async (req, res) => {
   try {
     const body = req.body;
