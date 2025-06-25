@@ -65,7 +65,7 @@ app.post("/webhook", async (req, res) => {
           console.log("Received message:", messageText);
 
           const reply = await askGemini(messageText); // your RAG logic
-          await sendMessage(senderId, reply);
+          await sendReply(senderId, reply);
         } else {
           console.log("Non-message event or missing sender ID:", event);
         }
