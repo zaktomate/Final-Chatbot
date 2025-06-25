@@ -121,6 +121,7 @@ Always reply clearly, accurately, and in a friendly tone. If unsure, direct the 
 
   const answer = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
   console.log("\n🤖 Gemini Answer:\n", answer || "No response");
+  return answer;
 }
 
 module.exports = askGemini;
