@@ -3,7 +3,7 @@ const axios = require("axios");
 const { MongoClient } = require("mongodb");
 
 const API_KEY = process.env.GEMINI_API_KEY;
-const MONGO_URI = process.env.MONGODB_URI;
+const MONGO_URI = "mongodb+srv://zaktomate:SSbAi3LIWISFECy@cluster0.mongodb.net/edtech_bot?retryWrites=true&w=majority&tls=true";
 const EMBEDDING_URL = `https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=${API_KEY}`;
 const GEMINI_CHAT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
@@ -40,13 +40,13 @@ async function embedText(text) {
 // }
 
 async function searchMongo(embedding, topK = 5) {
-  console.log("🧪 Mongo URI:", process.env.MONGO_URI);
-  const client = new MongoClient(process.env.MONGO_URI, {
+  console.log("🧪 Mongo URI:", MONGO_URI);
+  const client = new MongoClient(MONGO_URI, {
   tls: true,
 });
 
 
-  console.log("🔍 Trying to connect to MongoDB:", process.env.MONGO_URI);
+  console.log("🔍 Trying to connect to MongoDB:", MONGO_URI);
   await client.connect();
   const db = client.db("edtech_bot");
   const collection = db.collection("course_chunks");
