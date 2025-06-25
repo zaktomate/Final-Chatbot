@@ -28,26 +28,59 @@ app.get("/webhook", (req, res) => {
 });
 
 // Messenger Webhook (POST)
+// app.post("/webhook", async (req, res) => {
+//   const body = req.body;
+
+//   if (body.object === "page") {
+//     for (const entry of body.entry) {
+//       for (const event of entry.messaging) {
+//         const sender = event.sender.id;
+//         const message = event.message?.text;
+
+//         if (message) {
+//           const reply = await askGemini(message);
+//           await sendReply(sender, reply);
+//         }
+//       }
+//     }
+//     res.status(200).send("EVENT_RECEIVED");
+//   } else {
+//     res.sendStatus(404);
+//   }
+// });
+
 app.post("/webhook", async (req, res) => {
-  const body = req.body;
+  try {
+    const body = req.body;
 
-  if (body.object === "page") {
-    for (const entry of body.entry) {
-      for (const event of entry.messaging) {
-        const sender = event.sender.id;
-        const message = event.message?.text;
+    if (body.object === "page") {
+      body.entry.forEach(async (entry) => {
+        const event = entry.messaging[0];
 
-        if (message) {
-          const reply = await askGemini(message);
-          await sendReply(sender, reply);
+        // Safe check to avoid undefined errors
+        if (event.message && event.sender && event.sender.id) {
+          const senderId = event.sender.id;
+          const messageText = event.message.text;
+
+          console.log("Received message:", messageText);
+
+          const reply = await askGemini(messageText); // your RAG logic
+          await sendMessage(senderId, reply);
+        } else {
+          console.log("Non-message event or missing sender ID:", event);
         }
-      }
+      });
+
+      res.sendStatus(200);
+    } else {
+      res.sendStatus(404);
     }
-    res.status(200).send("EVENT_RECEIVED");
-  } else {
-    res.sendStatus(404);
+  } catch (err) {
+    console.error("Webhook handler error:", err);
+    res.sendStatus(500);
   }
 });
+
 
 async function sendReply(sender, text) {
   await axios.post(`https://graph.facebook.com/v18.0/me/messages?access_token=${PAGE_TOKEN}`, {
