@@ -1,6 +1,6 @@
 # 🤖 Zaktomate Chatbot
 
-A real-time, AI-powered chatbot built with **Node.js**, **Gemini 1.5 Flash**, and **Facebook Messenger**. Designed to assist Bangladeshi HSC students (Batch 2027) with personalized, context-aware learning — delivered directly through Messenger.
+A real-time, AI-powered chatbot built with **Node.js**, **Gemini 1.5 Flash**, and **Facebook Messenger**. Designed to delivere AI generated replies directly through Messenger.
 
 ---
 
