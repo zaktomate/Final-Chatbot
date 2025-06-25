@@ -41,10 +41,9 @@ async function embedText(text) {
 
 async function searchMongo(embedding, topK = 5) {
   const client = new MongoClient(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    tlsAllowInvalidCertificates: true, // 👈 TEMPORARY FIX for SSL issue
-  });
+  tlsAllowInvalidCertificates: true,
+});
+
 
   await client.connect();
   const db = client.db("edtech_bot");
