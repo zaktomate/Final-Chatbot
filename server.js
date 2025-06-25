@@ -27,39 +27,6 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-// Messenger Webhook (POST)
-// app.post("/webhook", async (req, res) => {
-//   try {
-//     const body = req.body;
-
-//     if (body.object === "page") {
-//       body.entry.forEach(async (entry) => {
-//         const event = entry.messaging[0];
-
-//         // Safe check to avoid undefined errors
-//         if (event.message && event.sender && event.sender.id) {
-//           const senderId = event.sender.id;
-//           const messageText = event.message.text;
-
-//           console.log("Received message:", messageText);
-
-//           const reply = await askGemini(messageText); // your RAG logic
-//           await sendMessage(senderId, reply);
-//         } else {
-//           console.log("Non-message event or missing sender ID:", event);
-//         }
-//       });
-
-//       res.sendStatus(200);
-//     } else {
-//       res.sendStatus(404);
-//     }
-//   } catch (err) {
-//     console.error("Webhook handler error:", err);
-//     res.sendStatus(500);
-//   }
-// });
-
 // Messenger POST webhook
 app.post("/webhook", async (req, res) => {
   try {
