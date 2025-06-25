@@ -65,7 +65,7 @@ app.post("/webhook", async (req, res) => {
           console.log("Received message:", messageText);
 
           const reply = await askGemini(messageText); // your RAG logic
-          await sendReply(senderId, reply);
+          await sendMessage(senderId, reply);
         } else {
           console.log("Non-message event or missing sender ID:", event);
         }
@@ -82,12 +82,23 @@ app.post("/webhook", async (req, res) => {
 });
 
 
-async function sendReply(sender, text) {
-  await axios.post(`https://graph.facebook.com/v18.0/me/messages?access_token=${PAGE_TOKEN}`, {
-    recipient: { id: sender },
-    message: { text: text || "Sorry, I couldn't process that." },
-  });
+async function sendMessage(senderId, messageText) {
+  if (!messageText) {
+    console.warn("⚠️ No message text provided to sendMessage");
+  }
+
+  console.log("📤 Sending to Messenger:", messageText);
+
+  try {
+    await axios.post(`https://graph.facebook.com/v18.0/me/messages?access_token=${PAGE_TOKEN}`, {
+      recipient: { id: senderId },
+      message: { text: messageText || "Sorry, I couldn't process that." },
+    });
+  } catch (error) {
+    console.error("❌ Error sending to Messenger:", error.response?.data || error.message);
+  }
 }
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Webhook running on port ${PORT}`));
