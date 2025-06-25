@@ -14,8 +14,38 @@ async function embedText(text) {
   return response.data.embedding.values;
 }
 
+// async function searchMongo(embedding, topK = 5) {
+//   const client = new MongoClient(MONGO_URI);
+//   await client.connect();
+//   const db = client.db("edtech_bot");
+//   const collection = db.collection("course_chunks");
+
+//   const results = await collection
+//     .aggregate([
+//       {
+//         $vectorSearch: {
+//           queryVector: embedding,
+//           path: "embedding",
+//           numCandidates: 100,
+//           limit: topK,
+//           index: "vector_index",
+//           similarity: "cosine",
+//         },
+//       },
+//     ])
+//     .toArray();
+
+//   await client.close();
+//   return results.map((r) => r.text);
+// }
+
 async function searchMongo(embedding, topK = 5) {
-  const client = new MongoClient(MONGO_URI);
+  const client = new MongoClient(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    tlsAllowInvalidCertificates: true, // 👈 TEMPORARY FIX for SSL issue
+  });
+
   await client.connect();
   const db = client.db("edtech_bot");
   const collection = db.collection("course_chunks");
@@ -38,6 +68,7 @@ async function searchMongo(embedding, topK = 5) {
   await client.close();
   return results.map((r) => r.text);
 }
+
 
 // async function askGemini(prompt) {
 //   const embedding = await embedText(prompt);
