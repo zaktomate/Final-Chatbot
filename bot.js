@@ -3,7 +3,7 @@ const axios = require("axios");
 const { MongoClient } = require("mongodb");
 
 const API_KEY = process.env.GEMINI_API_KEY;
-const MONGO_URI = "mongodb+srv://zaktomate:SSbAi3LIWISFECy@cluster0.mongodb.net/edtech_bot?retryWrites=true&w=majority&tls=true";
+const MONGO_URI = process.env.MONGODB_URI;
 const EMBEDDING_URL = `https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=${API_KEY}`;
 const GEMINI_CHAT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
