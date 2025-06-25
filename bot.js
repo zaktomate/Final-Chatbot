@@ -14,39 +14,11 @@ async function embedText(text) {
   return response.data.embedding.values;
 }
 
-// async function searchMongo(embedding, topK = 5) {
-//   const client = new MongoClient(MONGO_URI);
-//   await client.connect();
-//   const db = client.db("edtech_bot");
-//   const collection = db.collection("course_chunks");
-
-//   const results = await collection
-//     .aggregate([
-//       {
-//         $vectorSearch: {
-//           queryVector: embedding,
-//           path: "embedding",
-//           numCandidates: 100,
-//           limit: topK,
-//           index: "vector_index",
-//           similarity: "cosine",
-//         },
-//       },
-//     ])
-//     .toArray();
-
-//   await client.close();
-//   return results.map((r) => r.text);
-// }
-
 async function searchMongo(embedding, topK = 5) {
-  console.log("🧪 Mongo URI:", MONGO_URI);
   const client = new MongoClient(MONGO_URI, {
   tls: true,
 });
 
-
-  console.log("🔍 Trying to connect to MongoDB:", MONGO_URI);
   await client.connect();
   const db = client.db("edtech_bot");
   const collection = db.collection("course_chunks");
@@ -70,46 +42,40 @@ async function searchMongo(embedding, topK = 5) {
   return results.map((r) => r.text);
 }
 
-
-// async function askGemini(prompt) {
-//   const embedding = await embedText(prompt);
-//   const topChunks = await searchMongo(embedding);
-
-//   const context = topChunks.join("\n---\n");
-
-//   const fullPrompt = `Use the following data from an EdTech platform to answer the user's question:\n${context}\n\nUser: ${prompt}`;
-//   console.log("\n🔎 Top Matching Chunks from MongoDB:");
-//   console.log(topChunks);
-//   const response = await axios.post(GEMINI_CHAT_URL, {
-//     contents: [
-//       {
-//         role: "user",
-//         parts: [{ text: fullPrompt }],
-//       },
-//     ],
-//   });
-
-//   const answer = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
-//   console.log("\n🤖 Gemini Answer:\n", answer || "No response");
-// }
-
 async function askGemini(prompt) {
   const embedding = await embedText(prompt);
   const topChunks = await searchMongo(embedding);
   const context = topChunks.join("\n---\n");
 
-  const systemInstruction = `You are a helpful and professional customer service assistant for an EdTech platform in Bangladesh called "Fahad's Tutorial".
-Your job is to assist students, parents, and users by answering questions about courses, enrollment, pricing, instructors, and technical issues.
+  const systemInstruction = `You are "Fahad's Tutorial Assistant", a highly professional, helpful, and supportive AI customer service agent for an EdTech platform in Bangladesh. Our platform is called "Fahad's Tutorial".
 
-Start the **first** message with a polite Islamic greeting like "Assalamu Alaikum" (if appropriate), but do **not repeat the greeting** in every reply.
+**Your Core Mission:**
+To provide accurate, clear, and timely assistance to our diverse user base, including prospective students, current students, parents, and guardians.
 
-Always reply clearly, accurately, and in a friendly tone. If unsure, direct the user to contact fahadstutorial@gmail.com. Avoid making things up.`;
+**Areas of Expertise (Provide information on):**
+* **Courses:** Detailed content, curriculum, available levels (beginner, intermediate, advanced), prerequisites, and personalized recommendations.
+* **Enrollment & Admissions:** Application process, deadlines, eligibility criteria, and required documents.
+* **Pricing & Payments:** Course fees, available payment plans, discount opportunities, and refund policies.
+* **Instructors:** Qualifications, teaching experience, and background.
+* **Technical Support:** Common troubleshooting for platform access, navigation, account management, and feature usage.
+* **General Platform Information:** FAQs, policies, and terms of service.
+
+**Communication Guidelines:**
+* **Tone:** Always maintain a professional, friendly, patient, and empathetic tone.
+* **Accuracy:** Prioritize absolute accuracy. Do not provide speculative or invented information.
+* **Clarity:** Be concise and easy to understand.
+
+**Handling Unsure or Out-of-Scope Queries (CRITICAL):**
+* If you are uncertain about an answer, if the information is not explicitly available in your knowledge base, or if the query falls outside your defined areas of expertise (e.g., personal advice, sensitive topics, non-EdTech inquiries):
+    * Politely state that you cannot provide that specific information.
+    * Immediately direct the user to human support by saying: "Please contact our support team at **fahadstutorial@gmail.com** for further assistance."
+* **DO NOT** make up any information or attempt to answer questions outside your specified knowledge base.
+
+**Constraints:**
+* Focus strictly on providing information relevant to "Fahad's Tutorial."
+* Do not engage in discussions about politics, religion, personal finance, medical advice, or any other unrelated sensitive topics.`;
 
   const fullPrompt = `${systemInstruction}\n\nHere is some data from the platform:\n${context}\n\nNow answer the user's question:\n${prompt}`;
-
-  console.log("\n🔎 Top Matching Chunks from MongoDB:");
-  console.log(topChunks);
-
   const response = await axios.post(GEMINI_CHAT_URL, {
     contents: [
       {
@@ -120,7 +86,6 @@ Always reply clearly, accurately, and in a friendly tone. If unsure, direct the 
   });
 
   const answer = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
-  console.log("\n🤖 Gemini Answer:\n", answer || "No response");
   return answer;
 }
 
