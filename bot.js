@@ -40,11 +40,12 @@ async function embedText(text) {
 // }
 
 async function searchMongo(embedding, topK = 5) {
-  const client = new MongoClient(MONGO_URI, {
-  tlsAllowInvalidCertificates: true,
+  const client = new MongoClient(process.env.MONGO_URI, {
+  tls: true,
 });
 
 
+  console.log("🔍 Trying to connect to MongoDB:", process.env.MONGO_URI);
   await client.connect();
   const db = client.db("edtech_bot");
   const collection = db.collection("course_chunks");
