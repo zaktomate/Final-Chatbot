@@ -39,7 +39,7 @@ A real-time, AI-powered chatbot built with **Node.js**, **Gemini 1.5 Flash**, an
 |----------------|--------------------------|
 | AI Model       | Gemini 1.5 Flash         |
 | Backend        | Node.js + Express        |
-| Deployment     | Render, Heroku, or others|
+| Deployment     | Render|
 | Messenger API  | Meta Developer Platform  |
 | Embeddings     | Custom logic (JSON-based or database-backed) |
 | Token Counter  | Lightweight custom tool  |
