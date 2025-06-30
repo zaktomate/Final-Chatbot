@@ -1,80 +1,44 @@
-require("dotenv").config();
+// index.js (Backend for Website Chat)
+
+require("dotenv").config(); // Loads environment variables from .env
 const express = require("express");
 const bodyParser = require("body-parser");
-const axios = require("axios");
-const askGemini = require("./bot"); // RAG logic
+const cors = require("cors"); // REQUIRED: For your website frontend to communicate
+const askGemini = require("./bot"); // Your RAG logic from bot.js
 
 const app = express();
-app.use(bodyParser.json());
 
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
-const PAGE_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+// --- Middleware ---
+app.use(bodyParser.json()); // To parse JSON request bodies from the frontend
+app.use(cors());            // To allow requests from your frontend's domain (Cross-Origin Resource Sharing)
 
-// Facebook verification (GET)
-app.get("/webhook", (req, res) => {
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-  console.log("MODE:", mode);
-  console.log("TOKEN:", token);
-  console.log("EXPECTED TOKEN:", VERIFY_TOKEN);
-  console.log("CHALLENGE:", challenge);
-
-  if (mode && token === VERIFY_TOKEN) {
-    res.status(200).send(challenge);
-  } else {
-    res.sendStatus(403);
-  }
-});
-
-// Messenger POST webhook
-app.post("/webhook", async (req, res) => {
+// --- API Endpoint for your Website Frontend ---
+// This route will receive the user's message from your website
+app.post("/api/chat", async (req, res) => {
   try {
-    const body = req.body;
+    const userMessage = req.body.message; // Expecting { message: "User's query" } from frontend
 
-    if (body.object === "page") {
-      for (const entry of body.entry) {
-        const event = entry.messaging?.[0];
-
-        if (event?.message?.text && event?.sender?.id) {
-          const senderId = event.sender.id;
-          const messageText = event.message.text;
-
-          console.log("📩 Received message:", messageText);
-
-          const reply = await askGemini(messageText);
-          await sendMessage(senderId, reply);
-        } else {
-          console.log("⚠️ Non-message event or missing sender ID");
-        }
-      }
-
-      res.sendStatus(200);
-    } else {
-      res.sendStatus(404);
+    // Basic validation for the incoming message
+    if (!userMessage || typeof userMessage !== 'string' || userMessage.trim() === '') {
+      console.warn("Received invalid or empty message:", req.body);
+      return res.status(400).json({ error: "Invalid or empty 'message' in request body." });
     }
-  } catch (err) {
-    console.error("❌ Webhook handler error:", err);
-    res.sendStatus(500);
+
+    console.log("💬 Received message from website:", userMessage);
+
+    // Call your RAG logic to get a reply from Gemini
+    const geminiReply = await askGemini(userMessage);
+
+    // Send the AI's reply back to your website
+    res.status(200).json({ reply: geminiReply });
+
+  } catch (error) {
+    console.error("❌ Error processing chat request from website:", error.message);
+    // Send a generic error message to the frontend, log full error details internally
+    res.status(500).json({ error: "An internal server error occurred while processing your request. Please try again later." });
   }
 });
 
-async function sendMessage(senderId, messageText) {
-  if (!messageText) {
-    console.warn("⚠️ No message text provided to sendMessage");
-  }
-
-  console.log("📤 Sending to Messenger:", messageText);
-
-  try {
-    await axios.post(`https://graph.facebook.com/v18.0/me/messages?access_token=${PAGE_TOKEN}`, {
-      recipient: { id: senderId },
-      message: { text: messageText || "Sorry, I couldn't process that." },
-    });
-  } catch (error) {
-    console.error("❌ Error sending to Messenger:", error.response?.data || error.message);
-  }
-}
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Webhook running on port ${PORT}`));
+// --- Server Startup ---
+const PORT = process.env.PORT || 3000; // Use port from .env or default to 3000
+app.listen(PORT, () => console.log(`✅ Backend API running on port ${PORT}`));
