@@ -7,15 +7,22 @@ const MONGO_URI = process.env.MONGODB_URI;
 const EMBEDDING_URL = `https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=${API_KEY}`;
 const GEMINI_CHAT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-const rateLimit = require("./rateLimiter");
-
 async function embedText(text) {
-  const response = await rateLimit(() =>
-    axios.post(EMBEDDING_URL, {
+  try {
+    const response = await axios.post(EMBEDDING_URL, {
+      // <-- CORRECTED: Await the axios call
       content: { parts: [{ text }] },
-    })
-  );
-  return response.data.embedding.values;
+    });
+    // Ensure the structure is as expected before accessing
+    if (!response || !response.data || !response.data.embedding || !response.data.embedding.values) {
+      console.error("Invalid embedding response structure:", JSON.stringify(response.data, null, 2));
+      throw new Error("Invalid embedding response from Gemini API.");
+    }
+    return response.data.embedding.values;
+  } catch (error) {
+    console.error("Error during embedding text:", error.response?.data || error.message);
+    throw new Error("Failed to get embedding for text."); // Re-throw to be caught by askGemini's try/catch
+  }
 }
 
 async function searchMongo(embedding, topK = 5) {
@@ -53,8 +60,8 @@ async function askGemini(prompt) {
 
     // Truncate context to avoid token overflow
     const context = topChunks.join("\n---\n").slice(0, 9000);
-    const { logTokenStats } = require("./tokenCounter");
-    logTokenStats(context, prompt);
+
+    // No changes needed for systemInstruction and fullPrompt, they are correct
 
     const systemInstruction = `You are Zakbot, an AI Customer Service Manager for ZAKTOMATE. Your primary role is to assist users with inquiries regarding ZAKTOMATE's products and services: Zakbot (Chatbot), Zakdeck (Content Generator), and OpsMate (Service Plans). You also handle questions about ZAKTOMATE's shared features and overall company information.
 
@@ -85,18 +92,20 @@ async function askGemini(prompt) {
 
     const fullPrompt = `${systemInstruction}\n\nHere is some data from the platform:\n${context}\n\nNow answer the user's question:\n${prompt}`;
 
-    const response = await rateLimit(() =>
-      axios.post(GEMINI_CHAT_URL, {
-        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
-      })
-    );
+    // --- FIX IS HERE ---
+    const response = await axios.post(GEMINI_CHAT_URL, {
+      // <-- AWAIT THE AXIOS CALL
+      contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+    });
+    // --- END FIX ---
 
     const answer = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
+    console.log(answer);
     return answer || "Sorry, I couldn't generate a reply. Please contact support.";
   } catch (err) {
-    console.error("❌ Gemini RAG error:", err.message);
-    return "Something went wrong. Please contact support.";
+    console.error("❌ Gemini RAG error:", err.response?.data?.error?.message || err.message); // More detailed error logging
+    return "Something went wrong. Please contact support@zaktai.com";
   }
 }
 
